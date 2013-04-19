@@ -63,9 +63,9 @@
                 },
                 onCarregouTodos: function(tempoTotalParaCarregar, carregouTodosComSucesso) {
                     console.log("CARREGOU TODOS RECURSOS em " + tempoTotalParaCarregar + "ms   SITUACAO:" + ((carregouTodosComSucesso) ? "SUCESSO" : "ERRO"));
-                    var mapa = recursosCache.get("mapas/fase1.json");
-                    var som1 = recursosCache.get("audio/FF7_ac_angel.ogg");
-                    var img1 = recursosCache.get("http://www.ibm.com/developerworks/java/library/j-html5-game6/runner-tracks.jpg");
+                    var mapa = carregadorRecursos.get("mapas/fase1.json");
+                    var som1 = carregadorRecursos.get("audio/FF7_ac_angel.ogg");
+                    var img1 = carregadorRecursos.get("http://www.ibm.com/developerworks/java/library/j-html5-game6/runner-tracks.jpg");
                 }
             });
 </code></pre>
