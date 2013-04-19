@@ -7,11 +7,11 @@ var carregadorRecursos = function() {
             var suporta = {};
             var audio = document.createElement("audio");
             var formatos = {
-                ogg: 'audio/ogg; codecs="vorbis"',
-                wav: 'audio/wav; codecs="1"',
-                webma: 'audio/webm; codecs="vorbis"',
-                mp3: 'audio/mpeg; codecs="mp3"',
-                m4a: 'audio/mp4; codecs="mp4a.40.2"'
+                ogg: "audio/ogg; codecs=\"vorbis\"",
+                wav: "audio/wav; codecs=\"1\"",
+                webma: "audio/webm; codecs=\"vorbis\"",
+                mp3: "audio/mpeg; codecs=\"mp3\"",
+                m4a: "audio/mp4; codecs=\"mp4a.40.2\""
             };
             for (var i in formatos) {
                 var pode = audio.canPlayType(formatos[i]);
@@ -66,7 +66,7 @@ var carregadorRecursos = function() {
             xhr.open("GET", src, true);
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4) {
-                    //200 - OK  , 0 - quando usa protocolo file://  ou Ã© outro dominio (CORS)                 
+                    //200 - OK  , 0 - quando usa protocolo file://  ou é outro dominio (CORS)                 
                     if ((xhr.status === 200 || xhr.status === 0) &&
                             xhr.responseText) {
                         //console.log( xhr.status);

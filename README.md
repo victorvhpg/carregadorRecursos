@@ -37,3 +37,9 @@ exemplo de uso :
                         var img1 = carregadorRecursos.get("http://www.ibm.com/developerworks/java/library/j-html5-game6/runner-tracks.jpg");
                     }
                 });
+
+
+
+
+
+http://fiddle.jshell.net/victorvhpg/MwpUR/show/
