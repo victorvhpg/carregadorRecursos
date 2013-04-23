@@ -1,6 +1,8 @@
 //@victorvhpg
 //https://github.com/victorvhpg/carregadorRecursos
-var carregadorRecursos = function() {
+var carregadorRecursos = (function(w) {
+    "use strict";
+    var document = w.document,console = w.console;
     var _todosRecursos = {};
     return {
         formatoAudioSuportado: (function() {
@@ -66,7 +68,7 @@ var carregadorRecursos = function() {
             xhr.open("GET", src, true);
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4) {
-                    //200 - OK  , 0 - quando usa protocolo file://  ou é outro dominio (CORS)                 
+                    //200 - OK  , 0 - quando usa protocolo file://  ou eh outro dominio (CORS)                 
                     if ((xhr.status === 200 || xhr.status === 0) &&
                             xhr.responseText) {
                         //console.log( xhr.status);
@@ -128,4 +130,4 @@ var carregadorRecursos = function() {
             }());
         }
     };
-}();
+}(window));
