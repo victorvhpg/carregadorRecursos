@@ -2,7 +2,7 @@
 //https://github.com/victorvhpg/carregadorRecursos
 var carregadorRecursos = (function(w) {
     "use strict";
-    var document = w.document,console = w.console;
+    var document = w.document, console = w.console;
     var _todosRecursos = {};
     return {
         formatoAudioSuportado: (function() {
@@ -21,17 +21,31 @@ var carregadorRecursos = (function(w) {
             }
             return suporta;
         }()),
+        getExtensaoQueSuporta: function() {
+            for (var f in this.formatoAudioSuportado) {
+                if (this.formatoAudioSuportado[f]) {
+                    return f;
+                }
+            }
+            return "";
+        },
         carregarAudio: function(src, callback) {
             var temp = src.split("?");
             temp = temp[0].split(".");
             var extensao = ((temp.length > 1) ? temp[temp.length - 1] : "");
-            var ok = false;
-            var audio = document.createElement("audio");
-            if (extensao && !this.formatoAudioSuportado[extensao]) {
+            if (extensao === "") {
+
+                extensao = this.getExtensaoQueSuporta();
+                src = temp[0] + "." + extensao;
+            }
+            if (!this.formatoAudioSuportado[extensao]) {
                 console.error("ERRO ao CARREGAR recurso : " + src + " # nao suporta audio " + extensao);
                 callback(audio, false);
                 return;
             }
+
+            var ok = false;
+            var audio = document.createElement("audio");
             audio.preload = "auto";
             audio.addEventListener("canplaythrough", function() {
                 //     console.log("audio" , src);
@@ -43,11 +57,12 @@ var carregadorRecursos = (function(w) {
                 callback(audio, true);
             }, false);
             audio.addEventListener("error", function(e) {
-                //   console.dir(e);
-                console.error("ERRO ao CARREGAR recurso : " + src);
+                console.dir(e);
+                console.error("ERRO(" + e + ") ao CARREGAR recurso : " + src);
                 callback(audio, false);
             }, false);
             audio.src = src;
+            document.body.appendChild(audio);
             audio.load();
         },
         carregarImagem: function(src, callback) {
@@ -102,7 +117,7 @@ var carregadorRecursos = (function(w) {
                     //console.log("RECURSOS" , "carregando " + vet[ i ]);
                     var src = vet[ i ];
                     if (configRecursos.forcarCarregamento) {
-                        //isto tenta garantir que sempre o navegador ira fazer a requisicao
+                        //isto tenta garantir que sempre o MarioVoadorgador ira fazer a requisicao
                         var semCache = "semCache=" + ((Date.now() + Math.random()) + "_" + i);
                         src += ((src.indexOf("?") !== -1) ? ("&" + semCache) : "?" + semCache);
                     }
