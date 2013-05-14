@@ -114,10 +114,9 @@ var carregadorRecursos = (function(w) {
             var that = this;
             var carregaVetRecursos = function(vet, funcCarrega) {
                 for (var i = 0, l = vet.length; i < l; i++) {
-                    //console.log("RECURSOS" , "carregando " + vet[ i ]);
                     var src = vet[ i ];
                     if (configRecursos.forcarCarregamento) {
-                        //isto tenta garantir que sempre o MarioVoadorgador ira fazer a requisicao
+                        //forca um novo cache 
                         var semCache = "semCache=" + ((Date.now() + Math.random()) + "_" + i);
                         src += ((src.indexOf("?") !== -1) ? ("&" + semCache) : "?" + semCache);
                     }
