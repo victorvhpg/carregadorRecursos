@@ -34,7 +34,7 @@ var carregadorRecursos = (function(w) {
             temp = temp[0].split(".");
             var extensao = ((temp.length > 1) ? temp[temp.length - 1] : "");
             if (extensao === "") {
-
+                //se enviar src sem  extensao  entao assume a q suporta
                 extensao = this.getExtensaoQueSuporta();
                 src = temp[0] + "." + extensao;
             }
