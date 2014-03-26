@@ -1,10 +1,12 @@
 //@victorvhpg
 //https://github.com/victorvhpg/carregadorRecursos
-var carregadorRecursos = (function(w) {
+(function(w) {
     "use strict";
-    var document = w.document, console = w.console;
+    var document = w.document,
+        console = w.console;
+    var _erros = [];
     var _todosRecursos = {};
-    return {
+    var carregadorRecursos = {
         formatoAudioSuportado: (function() {
             var suporta = {};
             var audio = document.createElement("audio");
@@ -83,9 +85,9 @@ var carregadorRecursos = (function(w) {
             xhr.open("GET", src, true);
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4) {
-                    //200 - OK  , 0 - quando usa protocolo file://  ou eh outro dominio (CORS)                 
+                    //200 - OK  , 0 - quando usa protocolo file://  ou eh outro dominio (CORS)
                     if ((xhr.status === 200 || xhr.status === 0) &&
-                            xhr.responseText) {
+                        xhr.responseText) {
                         //console.log( xhr.status);
                         callback(JSON.parse(xhr.responseText), true);
                     } else {
@@ -110,33 +112,38 @@ var carregadorRecursos = (function(w) {
             var vetJSON = configRecursos.json || [];
             var totalParaCarregar = (vetAudio.length + vetImg.length + vetJSON.length);
             var totalJaCarregado = 0;
-            var contErros = 0;
             var that = this;
+            _erros = [];
             var carregaVetRecursos = function(vet, funcCarrega) {
                 for (var i = 0, l = vet.length; i < l; i++) {
-                    var src = vet[ i ];
+                    var src = vet[i];
                     if (configRecursos.forcarCarregamento) {
-                        //forca um novo cache 
+                        //forca um novo cache
                         var semCache = "semCache=" + ((Date.now() + Math.random()) + "_" + i);
                         src += ((src.indexOf("?") !== -1) ? ("&" + semCache) : "?" + semCache);
                     }
-                    funcCarrega.apply(that, [src, function(indice) {
+                    funcCarrega.apply(that, [src,
+                        function(indice) {
                             return function(recurso, carregouComSucesso) {
                                 totalJaCarregado++;
-                                _todosRecursos[vet[ indice ]] = recurso;
+                                _todosRecursos[vet[indice]] = recurso;
                                 var perc = ((totalJaCarregado * 100) / totalParaCarregar).toFixed(2);
-                                !carregouComSucesso && contErros++;
-                                configCallbacks.onAoCarregarUmRecurso(perc, vet[ indice ], carregouComSucesso);
+                                !carregouComSucesso && _erros.push(vet[indice]);
+                                configCallbacks.onAoCarregarUmRecurso(perc, vet[indice], carregouComSucesso);
                                 if (totalJaCarregado === totalParaCarregar) {
-                                    configCallbacks.onCarregouTodos(Date.now() - tempoInicial, (contErros === 0));
+                                    configCallbacks.onCarregouTodos(Date.now() - tempoInicial, (_erros.length === 0));
                                 }
                             };
-                        }(i)]);
+                        }(i)
+                    ]);
                 }
             };
             carregaVetRecursos(vetJSON, this.carregarJSON);
             carregaVetRecursos(vetImg, this.carregarImagem);
             carregaVetRecursos(vetAudio, this.carregarAudio);
+        },
+        getSrcsErros: function() {
+            return _erros;
         },
         get: function(src) {
             return (src in _todosRecursos && _todosRecursos[src]) || (function() {
@@ -144,4 +151,13 @@ var carregadorRecursos = (function(w) {
             }());
         }
     };
+
+    if (typeof define === "function" && define.amd) {
+        define(function() {
+            return carregadorRecursos;
+        });
+    } else {
+        w.carregadorRecursos = carregadorRecursos;
+    }
+
 }(window));
