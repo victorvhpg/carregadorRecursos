@@ -153,10 +153,15 @@
     };
 
     if (typeof define === "function" && define.amd) {
+        //AMD
         define(function() {
             return carregadorRecursos;
         });
+    } else if (typeof exports === "object") {
+        //CommonJS - browserify
+        module.exports = carregadorRecursos;
     } else {
+        //global 
         w.carregadorRecursos = carregadorRecursos;
     }
 
