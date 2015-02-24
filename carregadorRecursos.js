@@ -23,6 +23,7 @@
             }
             return suporta;
         }()),
+
         getExtensaoQueSuporta: function() {
             for (var f in this.formatoAudioSuportado) {
                 if (this.formatoAudioSuportado[f]) {
@@ -31,6 +32,7 @@
             }
             return "";
         },
+
         carregarAudio: function(src, callback) {
             var temp = src.split("?");
             temp = temp[0].split(".");
@@ -67,9 +69,14 @@
             document.body.appendChild(audio);
             audio.load();
         },
+
         carregarImagem: function(src, callback) {
             var img = new Image();
             img.src = src;
+            if (img.complete) {
+                callback(img, true);
+                return img;
+            }
             img.addEventListener("load", function() {
                 callback(img, true);
             }, false);
@@ -79,9 +86,10 @@
             }, false);
             return img;
         },
+
         carregarJSON: function(src, callback) {
             var xhr = new XMLHttpRequest();
-            xhr.overrideMimeType && xhr.overrideMimeType('application/json');
+            void(xhr.overrideMimeType && xhr.overrideMimeType("application/json"));
             xhr.open("GET", src, true);
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4) {
@@ -105,6 +113,7 @@
                 console.warn("DICA: se tiver  no chrome e protocolo file:// ou CORS rode com  --allow-file-access-from-files --disable-web-security ");
             }
         },
+
         carregar: function(configRecursos, configCallbacks) {
             var tempoInicial = Date.now();
             var vetAudio = configRecursos.audio || [];
@@ -114,39 +123,47 @@
             var totalJaCarregado = 0;
             var that = this;
             _erros = [];
-            var carregaVetRecursos = function(vet, funcCarrega) {
-                for (var i = 0, l = vet.length; i < l; i++) {
-                    var src = vet[i];
-                    if (configRecursos.forcarCarregamento) {
-                        //forca um novo cache
-                        var semCache = "semCache=" + ((Date.now() + Math.random()) + "_" + i);
-                        src += ((src.indexOf("?") !== -1) ? ("&" + semCache) : "?" + semCache);
+            return new Promise(function(resolve, reject) {
+                var carregaVetRecursos = function(vet, funcCarrega) {
+                    for (var i = 0, l = vet.length; i < l; i++) {
+                        var src = vet[i];
+                        if (configRecursos.forcarCarregamento) {
+                            //forca um novo cache
+                            var semCache = "semCache=" + ((Date.now() + Math.random()) + "_" + i);
+                            src += ((src.indexOf("?") !== -1) ? ("&" + semCache) : "?" + semCache);
+                        }
+                        funcCarrega.apply(that, [src,
+                            function(indice) {
+                                return function(recurso, carregouComSucesso) {
+                                    totalJaCarregado++;
+                                    _todosRecursos[vet[indice]] = recurso;
+                                    var perc = ((totalJaCarregado * 100) / totalParaCarregar).toFixed(2);
+                                    void(!carregouComSucesso && _erros.push(vet[indice]));
+                                    configCallbacks.onAoCarregarUmRecurso(perc, vet[indice], carregouComSucesso);
+                                    if (totalJaCarregado === totalParaCarregar) {
+                                        var t = Date.now() - tempoInicial;
+                                        var sucesso = _erros.length === 0;
+                                        configCallbacks.onCarregouTodos(t, sucesso);
+                                        void((!sucesso && reject(new Error("total de falhas: " + _erros.length))) ||
+                                            resolve(t, sucesso));
+                                    }
+                                };
+                            }(i)
+                        ]);
                     }
-                    funcCarrega.apply(that, [src,
-                        function(indice) {
-                            return function(recurso, carregouComSucesso) {
-                                totalJaCarregado++;
-                                _todosRecursos[vet[indice]] = recurso;
-                                var perc = ((totalJaCarregado * 100) / totalParaCarregar).toFixed(2);
-                                !carregouComSucesso && _erros.push(vet[indice]);
-                                configCallbacks.onAoCarregarUmRecurso(perc, vet[indice], carregouComSucesso);
-                                if (totalJaCarregado === totalParaCarregar) {
-                                    configCallbacks.onCarregouTodos(Date.now() - tempoInicial, (_erros.length === 0));
-                                }
-                            };
-                        }(i)
-                    ]);
-                }
-            };
-            carregaVetRecursos(vetJSON, this.carregarJSON);
-            carregaVetRecursos(vetImg, this.carregarImagem);
-            carregaVetRecursos(vetAudio, this.carregarAudio);
+                };
+                carregaVetRecursos(vetJSON, that.carregarJSON);
+                carregaVetRecursos(vetImg, that.carregarImagem);
+                carregaVetRecursos(vetAudio, that.carregarAudio);
+            });
         },
+
         getSrcsErros: function() {
             return _erros;
         },
+
         get: function(src) {
-            return (src in _todosRecursos && _todosRecursos[src]) || (function() {
+            return _todosRecursos[src] || (function() {
                 throw new Error("recurso nao encontrado : " + src);
             }());
         }
