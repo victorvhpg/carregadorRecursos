@@ -34,100 +34,84 @@
         },
 
         carregarAudio: function(src, callback) {
-            var that = this;
-            return new Promise(function(resolve, reject) {
-                var temp = src.split("?");
-                temp = temp[0].split(".");
-                var extensao = ((temp.length > 1) ? temp[temp.length - 1] : "");
-                if (extensao === "") {
-                    //se enviar src sem  extensao  entao assume a q suporta
-                    extensao = that.getExtensaoQueSuporta();
-                    src = temp[0] + "." + extensao;
-                }
-                if (!that.formatoAudioSuportado[extensao]) {
-                    console.error("ERRO ao CARREGAR recurso : " + src + " # nao suporta audio " + extensao);
-                    callback(audio, false);
-                    reject(new Error("ERRO ao CARREGAR recurso : " + src + " # nao suporta audio " + extensao));
+            var temp = src.split("?");
+            temp = temp[0].split(".");
+            var extensao = ((temp.length > 1) ? temp[temp.length - 1] : "");
+            if (extensao === "") {
+                //se enviar src sem  extensao  entao assume a q suporta
+                extensao = this.getExtensaoQueSuporta();
+                src = temp[0] + "." + extensao;
+            }
+            if (!this.formatoAudioSuportado[extensao]) {
+                console.error("ERRO ao CARREGAR recurso : " + src + " # nao suporta audio " + extensao);
+                callback(audio, false);
+                return;
+            }
+
+            var ok = false;
+            var audio = document.createElement("audio");
+            audio.preload = "auto";
+            audio.addEventListener("canplaythrough", function() {
+                //     console.log("audio" , src);
+                //no ff quando usa protocolo file:// estava chamando 2 vezes o canplaythrough
+                if (ok) {
                     return;
                 }
-
-                var ok = false;
-                var audio = document.createElement("audio");
-                audio.preload = "auto";
-                audio.addEventListener("canplaythrough", function() {
-                    //     console.log("audio" , src);
-                    //no ff quando usa protocolo file:// estava chamando 2 vezes o canplaythrough
-                    if (ok) {
-                        return;
-                    }
-                    ok = true;
-                    callback(audio, true);
-                    resolve(audio);
-                }, false);
-                audio.addEventListener("error", function(e) {
-                    console.dir(e);
-                    console.error("ERRO(" + e + ") ao CARREGAR recurso : " + src);
-                    callback(audio, false);
-                    reject(new Error("ERRO(" + e + ") ao CARREGAR recurso : " + src));
-                }, false);
-                audio.src = src;
-                document.body.appendChild(audio);
-                audio.load();
-            });
+                ok = true;
+                callback(audio, true);
+            }, false);
+            audio.addEventListener("error", function(e) {
+                console.dir(e);
+                console.error("ERRO(" + e + ") ao CARREGAR recurso : " + src);
+                callback(audio, false);
+            }, false);
+            audio.src = src;
+            document.body.appendChild(audio);
+            audio.load();
         },
 
         carregarImagem: function(src, callback) {
-            return new Promise(function(resolve, reject) {
-                var img = new Image();
-                img.src = src;
-                if (img.complete) {
-                    callback(img, true);
-                    resolve(img);
-                    return;
-                }
-                img.addEventListener("load", function() {
-                    callback(img, true);
-                    resolve(img);
-                }, false);
-                img.addEventListener("error", function() {
-                    console.error("ERRO ao CARREGAR recurso : " + src);
-                    callback(img, false);
-                    reject(new Error(img));
-                }, false);
-            });
+            var img = new Image();
+            img.src = src;
+            if (img.complete) {
+                callback(img, true);
+                return img;
+            }
+            img.addEventListener("load", function() {
+                callback(img, true);
+            }, false);
+            img.addEventListener("error", function() {
+                console.error("ERRO ao CARREGAR recurso : " + src);
+                callback(img, false);
+            }, false);
+            return img;
         },
 
         carregarJSON: function(src, callback) {
-            return new Promise(function(reolve, reject) {
-                var xhr = new XMLHttpRequest();
-                void(xhr.overrideMimeType && xhr.overrideMimeType("application/json"));
-                xhr.open("GET", src, true);
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState === 4) {
-                        //200 - OK  , 0 - quando usa protocolo file://  ou eh outro dominio (CORS)
-                        if ((xhr.status === 200 || xhr.status === 0) &&
-                            xhr.responseText) {
-                            //console.log( xhr.status);
-                            var json = JSON.parse(xhr.responseText);
-                            callback(json, true);
-                            reolve(json);
-                        } else {
-                            console.error("ERRO ao CARREGAR recurso : " + src);
-                            callback({}, false);
-                            reject(new Error("ERRO ao CARREGAR recurso : " + src));
-                        }
+            var xhr = new XMLHttpRequest();
+            void(xhr.overrideMimeType && xhr.overrideMimeType("application/json"));
+            xhr.open("GET", src, true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    //200 - OK  , 0 - quando usa protocolo file://  ou eh outro dominio (CORS)
+                    if ((xhr.status === 200 || xhr.status === 0) &&
+                        xhr.responseText) {
+                        //console.log( xhr.status);
+                        callback(JSON.parse(xhr.responseText), true);
+                    } else {
+                        console.error("ERRO ao CARREGAR recurso : " + src);
+                        callback({}, false);
                     }
-                };
-                try {
-                    xhr.send(null);
-
-                } catch (err) {
-                    var msg = (err && err.message) || "";
-                    console.error("ERRO(" + (msg) + ") ao CARREGAR recurso : " + src);
-                    console.warn("DICA: se tiver  no chrome e protocolo file:// ou CORS rode com  --allow-file-access-from-files --disable-web-security ");
-                    reject(new Error("ERRO(" + (msg) + ") ao CARREGAR recurso : " + src));
                 }
-            });
+            };
+            try {
+                xhr.send(null);
+
+            } catch (err) {
+                var msg = (err && err.message) || "";
+                console.error("ERRO(" + (msg) + ") ao CARREGAR recurso : " + src);
+                console.warn("DICA: se tiver  no chrome e protocolo file:// ou CORS rode com  --allow-file-access-from-files --disable-web-security ");
+            }
         },
 
         carregar: function(configRecursos, configCallbacks) {
