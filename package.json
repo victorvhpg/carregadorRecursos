@@ -1,0 +1,16 @@
+{
+  "name": "carregadorRecursos",
+  "version": "1.0.0",
+  "description": "carregador de recursos (imagens, audio, json) para aplicações que precisam ter controle do carregamento dos recursos utilizados, por exemplo controle dos recursos de um game",
+  "main": "carregadorRecursos.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/victorvhpg/carregadorRecursos.git"
+  },
+  "author": "victorvhpg",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/victorvhpg/carregadorRecursos/issues"
+  },
+  "homepage": "https://github.com/victorvhpg/carregadorRecursos"
+}
